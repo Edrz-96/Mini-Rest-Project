@@ -27,13 +27,11 @@ public class CsvFileToJsonController {
 	public ResponseEntity<String> handleFileUpload(@RequestParam("filePath") String filePath) {
 		try {
 
-			// Call the service to parse CSV to JSON and save to the database
 			String jsonResult = csvToJsonService.parseCsvToJsonAndSave(filePath);
 
-			// You can return the JSON result or a success message as needed
+			
 			return new ResponseEntity<>(jsonResult, HttpStatus.OK);
 		} catch (IOException e) {
-			// Handle exception (e.g., file parsing error)
 			e.printStackTrace();
 			return new ResponseEntity<>("Failed to process the CSV file.", HttpStatus.INTERNAL_SERVER_ERROR);
 		}

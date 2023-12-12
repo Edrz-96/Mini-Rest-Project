@@ -23,19 +23,31 @@ public class CsvToJsonService {
 		this.repo = repo;
 	}
 
+	private String removeLeadingBomAndQuotes(String value) {
+		String result = value;
+		if (result.startsWith("\ufeff")) {
+			result = result.substring(1);
+		}
+		result = result.replace("\"", "");
+		return result.trim();
+	}
+
 	private List<CsvFile> readCsvFile(String filePath) throws IOException {
 		List<CsvFile> csvFiles = new ArrayList<>();
 
-		try (CSVParser parser = CSVParser.parse(Path.of(filePath), StandardCharsets.UTF_8, CSVFormat.DEFAULT)) {
+		CSVFormat format = CSVFormat.DEFAULT.builder().setTrim(true).setIgnoreEmptyLines(true)
+				.setIgnoreSurroundingSpaces(true).setQuote('/').build();
+
+		try (CSVParser parser = CSVParser.parse(Path.of(filePath), StandardCharsets.UTF_8, format)) {
 			for (CSVRecord record : parser) {
 				CsvFile csvFile = new CsvFile();
-				csvFile.setCustomerName(record.get(0));
+				csvFile.setCustomerName(removeLeadingBomAndQuotes(record.get(0)).trim());
 				csvFile.setAddressLineOne(record.get(1));
 				csvFile.setAddressLineTwo(record.get(2));
 				csvFile.setTown(record.get(3));
 				csvFile.setCounty(record.get(4));
-				csvFile.setPostcode(record.get(6));
-
+				csvFile.setCountry(record.get(5));
+				csvFile.setPostcode(removeLeadingBomAndQuotes(record.get(6)));
 				csvFiles.add(csvFile);
 			}
 		}
@@ -45,7 +57,6 @@ public class CsvToJsonService {
 
 	public String parseCsvToJsonAndSave(String filePath) throws IOException {
 		List<CsvFile> csvFiles = readCsvFile(filePath);
-		// Perform any additional processing or validation if needed
 		repo.saveAll(csvFiles);
 		return "CSV file processed successfully!";
 	}
